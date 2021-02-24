@@ -1,0 +1,18 @@
+service: cake-ordering-system
+
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  createOrder:
+    handler: handler.createOrder
+    # trigger for lambda
+    events:
+      # http: stands for APIGateWay
+      - http:
+          path: /order
+          method: post

@@ -1,0 +1,12 @@
+{
+  "name": "serverless-lambda-aws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "start": ""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
