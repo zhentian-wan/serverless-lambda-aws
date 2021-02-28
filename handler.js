@@ -23,3 +23,19 @@ module.exports.createOrder = async (event) => {
       return createResponse(400, error);
     });
 };
+
+module.exports.orderFulfillment = async (event) => {
+  const body = JSON.parse(event.body);
+  const { orderId, fulfillmentId } = body;
+  return orderManager
+    .fulfillOrder(orderId, fulfillmentId)
+    .then(() => {
+      return createResponse(
+        200,
+        `Order with orderId = ${orderId} has been fulfilled`
+      );
+    })
+    .catch((error) => {
+      return createResponse(400, error);
+    });
+};

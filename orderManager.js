@@ -23,12 +23,12 @@ module.exports.createOrder = (body) => {
 
 module.exports.placeNewOrder = (order) => {
   // save order in table
-  return saveNewOrder(order).then(() => {
+  return saveOrder(order).then(() => {
     return placeOrderStream(order);
   });
 };
 
-function saveNewOrder(order) {
+function saveOrder(order) {
   const params = {
     TableName: TABLE_NAME,
     Item: order,
@@ -45,4 +45,39 @@ function placeOrderStream(order) {
   };
 
   return kinesis.putRecord(params).promise();
+}
+
+module.exports.fulfillOrder = (orderId, fulfillmentId) => {
+  // save to db
+  return getOrder(orderId).then((savedOrder) => {
+    const order = createFulfilledOrder(savedOrder, fulfillmentId);
+    return saveOrder(order).then(() => {
+      // put to stream
+      return placeOrderStream(order);
+    });
+  });
+};
+
+function getOrder(orderId) {
+  const params = {
+    Key: {
+      orderId,
+    },
+    TableName: TABLE_NAME,
+  };
+
+  return dynamo
+    .get(params)
+    .promise()
+    .then((result) => {
+      return result.Item;
+    });
+}
+
+function createFulfilledOrder(savedOrder, fulfillmentId) {
+  savedOrder.fulfillmentId = fulfillmentId;
+  savedOrder.fulfillmentDate = Date.now();
+  savedOrder.eventType = "order_fulfilled";
+
+  return savedOrder;
 }

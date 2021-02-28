@@ -35,6 +35,15 @@ functions:
     environment:
       orderTableName: ordersTable
       orderStreamName: order-events
+  orderFulfillment:
+    handler: handler.orderFulfillment
+    events:
+      - http:
+          path: /order/fulfill
+          method: post
+    environment:
+      orderTableName: ordersTable
+      orderStreamName: order-events
 
 resources:
   Resources:
