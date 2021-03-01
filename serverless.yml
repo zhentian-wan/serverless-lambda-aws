@@ -22,6 +22,15 @@ provider:
         - kinesis:PutRecord
       Resource:
         - arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+      Resource:
+        - "*"
+      Condition:
+        StringEquals:
+          ses:FromAddress:
+            - answer881215@gmail.com
 
 functions:
   createOrder:
@@ -44,6 +53,15 @@ functions:
     environment:
       orderTableName: ordersTable
       orderStreamName: order-events
+  notifyCakeProducer:
+    handler: handler.notifyCakeProducer
+    events:
+      - stream:
+        arn: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+    environment:
+      region: us-east-1
+      cakeProducerEmail: answer881215@gmail.com
+      orderingSystemEmail: answer881215@foxmail.com
 
 resources:
   Resources:

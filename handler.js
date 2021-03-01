@@ -1,6 +1,8 @@
 "use strict";
 
 const orderManager = require("./orderManager");
+const kinesisHelper = require("./kinesisHelper");
+const cakeProducerManager = require("./cakeProducerManager");
 
 const createResponse = async (statusCode, message) => {
   const response = {
@@ -37,5 +39,24 @@ module.exports.orderFulfillment = async (event) => {
     })
     .catch((error) => {
       return createResponse(400, error);
+    });
+};
+
+module.exports.notifyCakeProducer = async (event) => {
+  const records = kinesisHelper.getRecords(event);
+
+  const ordersPlaced = records.filter((r) => r.eventType === "order_placed");
+
+  if (ordersPlaced <= 0) {
+    return "there is nothing";
+  }
+
+  return cakeProducerManager
+    .handlePlacedOrders(ordersPlaced)
+    .then(() => {
+      return "everything went well";
+    })
+    .catch((error) => {
+      return error;
     });
 };
