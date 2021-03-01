@@ -57,6 +57,11 @@ module.exports.notifyExternalParties = async (event) => {
     });
 };
 
+module.exports.notifyDeliveryCompany = async (event) => {
+  console.log("notifyDeliveryCompany:: call the API");
+  return "done";
+};
+
 function getCakeProducerPromise(records) {
   const ordersPlaced = records.filter((r) => r.eventType === "order_placed");
 

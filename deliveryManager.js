@@ -1,10 +1,37 @@
 "use strict";
 
+const orderManager = require("./orderManager");
+
+const AWS = require("aws-sdk");
+const sqs = new AWS.SQS({
+  region: process.env.region,
+});
+
+const DELIVERY_COMPANY_QUEUE = process.env.deliveryCompanyQueue;
+
 module.exports.deliveryOrder = (ordersFulfilled) => {
-  console.log("Delivery order was called");
-  return new Promise((res) => {
-    setTimeout(() => {
-      res("foo");
-    }, 10);
-  });
+  var orderFulfilledPromises = [];
+
+  for (let order of ordersFulfilled) {
+    const temp = orderManager
+      .updateOrderForDelivery(order.orderId)
+      .then((updatedOrder) => {
+        return orderManager.saveOrder(updatedOrder).then(() => {
+          notifyDeliveryCompany(updatedOrder);
+        });
+      });
+
+    orderFulfilledPromises.push(temp);
+  }
+
+  return Promise.all(orderFulfilledPromises);
 };
+
+function notifyDeliveryCompany(order) {
+  const params = {
+    MessageBody: JSON.stringify(order),
+    QueueUrl: DELIVERY_COMPANY_QUEUE,
+  };
+
+  return sqs.sendMessage(params).promise();
+}

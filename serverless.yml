@@ -34,6 +34,11 @@ provider:
             StringEquals:
               ses:FromAddress:
                 - answer881215@gmail.com
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+          Resource:
+            - arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:deliveryServiceQueue
 
 functions:
   createOrder:
@@ -65,6 +70,18 @@ functions:
       region: ${self.provider.region}
       cakeProducerEmail: answer881215@gmail.com
       orderingSystemEmail: answer881215@foxmail.com
+      deliveryCompanyQueue:
+        Ref: deliveryServiceQueue
+      orderTableName: ordersTable
+  notifyDeliveryCompany:
+    handler: handler.notifyDeliveryCompany
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - deliveryServiceQueue
+              - Arn
+          batchSize: 1
 
 resources:
   Resources:
@@ -84,3 +101,7 @@ resources:
           - AttributeName: "orderId"
             KeyType: "HASH"
         BillingMode: PAY_PER_REQUEST
+    deliveryServiceQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: deliveryServiceQueue

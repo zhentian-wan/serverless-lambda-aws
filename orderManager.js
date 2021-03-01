@@ -23,19 +23,19 @@ module.exports.createOrder = (body) => {
 
 module.exports.placeNewOrder = (order) => {
   // save order in table
-  return saveOrder(order).then(() => {
+  return this.saveOrder(order).then(() => {
     return placeOrderStream(order);
   });
 };
 
-function saveOrder(order) {
+module.exports.saveOrder = (order) => {
   const params = {
     TableName: TABLE_NAME,
     Item: order,
   };
 
   return dynamo.put(params).promise();
-}
+};
 
 function placeOrderStream(order) {
   const params = {
@@ -51,7 +51,7 @@ module.exports.fulfillOrder = (orderId, fulfillmentId) => {
   // save to db
   return getOrder(orderId).then((savedOrder) => {
     const order = createFulfilledOrder(savedOrder, fulfillmentId);
-    return saveOrder(order).then(() => {
+    return this.saveOrder(order).then(() => {
       // put to stream
       return placeOrderStream(order);
     });
@@ -81,3 +81,10 @@ function createFulfilledOrder(savedOrder, fulfillmentId) {
 
   return savedOrder;
 }
+
+module.exports.updateOrderForDelivery = (orderId) => {
+  return getOrder(orderId).then((order) => {
+    order.sendToDeliveryDate = Date.now();
+    return order;
+  });
+};
