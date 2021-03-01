@@ -5,13 +5,43 @@ When kinesis stream receive `order_placed` event then trigger Lambda which will 
 serverless.yml
 
 ```yml
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  apiGateway:
+    shouldStartNameWithService: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/ordersTable
+        - Effect: Allow
+          Action:
+            - kinesis:PutRecord
+          Resource:
+            - arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource:
+            - "*"
+          Condition:
+            StringEquals:
+              ses:FromAddress:
+                - <PROVIDER_EMAIL>
+
 functions:
   ...
   notifyCakeProducer:
     handler: handler.notifyCakeProducer
     events:
       - stream:
-        arn: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+          arn: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
     environment:
       region: ${self.provider.region}
       cakeProducerEmail: <....>
@@ -26,7 +56,7 @@ Kinesis `Record` is `base64` format.
 "use strict";
 
 function parsePayload(record) {
-  const json = new Buffer(record.kinesis.data, "base64").toString("utf8");
+  const json = Buffer.from(record.kinesis.data, "base64").toString("utf8");
   return JSON.parse(json);
 }
 

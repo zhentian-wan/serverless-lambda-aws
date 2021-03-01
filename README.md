@@ -51,3 +51,10 @@ module.exports.createOrder = async (event) => {
 ```bash
 sls deploy
 ```
+
+## Logs
+
+```bash
+sls logs -f <FUNCTION_NAME>
+## sls logs -f notifyExternalParties
+```

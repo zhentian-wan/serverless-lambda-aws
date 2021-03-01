@@ -155,17 +155,20 @@ provider:
   name: aws
   runtime: nodejs12.x
   lambdaHashingVersion: 20201221
-
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-      Resource:
-        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/ordersTable
-    - Effect: Allow
-      Action:
-        - kinesis:PutRecord
-      Resource:
-        - arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+  apiGateway:
+    shouldStartNameWithService: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/ordersTable
+        - Effect: Allow
+          Action:
+            - kinesis:PutRecord
+          Resource:
+            - arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
 ```
