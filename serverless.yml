@@ -39,6 +39,7 @@ provider:
             - sqs:SendMessage
           Resource:
             - arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:deliveryServiceQueue
+            - arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:customerServiceQueue
 
 functions:
   createOrder:
@@ -67,7 +68,7 @@ functions:
       - stream:
           arn: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
     environment:
-      region: ${self.provider.region}
+      region: us-east-1
       cakeProducerEmail: answer881215@gmail.com
       orderingSystemEmail: answer881215@foxmail.com
       deliveryCompanyQueue:
@@ -80,6 +81,26 @@ functions:
           arn:
             Fn::GetAtt:
               - deliveryServiceQueue
+              - Arn
+          batchSize: 1
+  orderDelivered:
+    handler: handler.orderDelivered
+    events:
+      - http:
+          path: /order/delivered
+          method: post
+    environment:
+      region: us-east-1
+      orderTableName: ordersTable
+      customerServiceQueue:
+        Ref: customerServiceQueue
+  notifyCustomerService:
+    handler: handler.notifyCustomerService
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - customerServiceQueue
               - Arn
           batchSize: 1
 
@@ -105,3 +126,7 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: deliveryServiceQueue
+    customerServiceQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: customerServiceQueue

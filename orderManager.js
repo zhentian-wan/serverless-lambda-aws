@@ -58,6 +58,14 @@ module.exports.fulfillOrder = (orderId, fulfillmentId) => {
   });
 };
 
+module.exports.updateOrderAfterDelivery = (orderId, deliveryCompanyId) => {
+  return getOrder(orderId).then((order) => {
+    order.deliveryCompanyId = deliveryCompanyId;
+    order.deliveryDate = Date.now();
+    return order;
+  });
+};
+
 function getOrder(orderId) {
   const params = {
     Key: {
