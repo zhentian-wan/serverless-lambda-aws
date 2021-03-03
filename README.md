@@ -58,3 +58,9 @@ sls deploy
 sls logs -f <FUNCTION_NAME>
 ## sls logs -f notifyExternalParties
 ```
+
+## Clean up
+
+```bash
+sls remove
+```
